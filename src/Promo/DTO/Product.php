@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Promo\DTO\TradeProcedures;
+namespace App\Promo\DTO;
 
 use App\Entities\AccrualBonuses;
 use App\Entities\CatalogProduct;
