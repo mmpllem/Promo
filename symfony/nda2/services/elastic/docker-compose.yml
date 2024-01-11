@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+    elasticsearch:
+        container_name: ${APP_NAME}-elastic
+        image: elasticsearch:8.9.1
+        environment:
+            - xpack.security.enabled=false
+            - "discovery.type=single-node"
+            - ES_JAVA_OPTS=-Xms512m -Xmx512m
+        volumes:
+            - ./${BASE_DIR}/elastic/data/:/usr/share/elasticsearch/data
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.services.${APP_NAME}-elastic.loadbalancer.server.port=${ELASTIC_PORT}"
+            - "traefik.http.routers.${APP_NAME}-elastic.rule=Host(`${APP_NAME}-elastic`)"
+            - "traefik.http.routers.${APP_NAME}-elastic.entrypoints=http"
+            - "traefik.docker.network=gateway"
+        networks:
+            - gateway
+        ports:
+            - "${ELASTIC_PORT}:9200"
+#        deploy:
+#            resources:
+#                limits:
+#                    memory: '1.5GB'
+#                reservations:
+#                    memory: 500M

@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+    postgres:
+        container_name: ${APP_NAME}-postgres
+        image: postgres:15.4-alpine3.18
+        environment:
+            POSTGRES_MULTIPLE_DATABASES: ${DB_NAME_CONTENT},${DB_NAME_SHOP}
+            USER_ID: ${USER_ID}
+            GROUP_ID: ${GROUP_ID}
+            PGDATA: /data/postgres
+            PGUSER: ${POSTGRES_ROOT_USER}
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        volumes:
+            - ./${BASE_DIR}/postgres/data/:/data/postgres
+            - ./${BASE_DIR}/postgres/script/:/docker-entrypoint-initdb.d
+        ports:
+            - ${DB_PORT}:5432
+        restart: unless-stopped
+        networks:
+            - gateway
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.services.${APP_NAME}-db-shop.loadbalancer.server.port=5432"
+            - "traefik.http.routers.${APP_NAME}-db-shop.rule=Host(`${APP_NAME}-db-shop`)"
+            - "traefik.http.routers.${APP_NAME}-db-shop.entrypoints=http"
+            - "traefik.docker.network=gateway"
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready", "-d"]
+            timeout: 5s
+            retries: 3

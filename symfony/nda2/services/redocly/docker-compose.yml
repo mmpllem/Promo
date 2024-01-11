@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+    redocly:
+        container_name: ${APP_NAME}-redocly
+        build:
+            context: ./services/redocly
+            target: redocly-${APP_ENV}
+        volumes:
+            - ./services/redocly:/app
+        ports:
+            - ${REDOCLY_PORT}:8090
+        environment:
+            REDOCLY_PORT: ${REDOCLY_PORT}
+        networks:
+            - gateway
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.services.${APP_NAME}-redocly.loadbalancer.server.port=${REDOCLY_PORT}"
+            - "traefik.http.routers.${APP_NAME}-redocly.rule=Host(`${APP_NAME}-redocly`)"
+            - "traefik.http.routers.${APP_NAME}-redocly.entrypoints=http"
+            - "traefik.docker.network=gateway"

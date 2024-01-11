@@ -1,0 +1,29 @@
+version: "3.9"
+services:
+    traefik:
+        image: traefik:v2.2
+        container_name: traefik
+        restart: unless-stopped
+        security_opt:
+            - no-new-privileges:true
+        ports:
+            - "80:80"
+            - "443:443"
+            - "8082:8082"
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - ./${BASE_DIR}/traefik/traefik.yml:/traefik.yml:ro
+            - ./${BASE_DIR}/traefik/data/custom/:/custom/:ro
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.traefik.entrypoints=http"
+            - "traefik.http.routers.traefik.rule=Host(`tf.ym.local.com`)"
+            - "traefik.http.routers.traefik.service=api@internal"
+            - "traefik.http.services.traefik-traefik.loadbalancer.server.port=888"
+#            - "traefik.http.middlewares.traefik-auth.basicauth.users=pv2:{SHA}SdHxiJHaNe9hRzYc8fxaNMa1is4="
+        networks:
+            - gateway
+networks:
+    gateway:
+        external: false

@@ -1,0 +1,37 @@
+version: '3.9'
+services:
+    strapi:
+        container_name: ${APP_NAME}-strapi
+        build:
+            context: ./services/strapi
+            target: app-${APP_ENV}
+        environment:
+            DATABASE_CLIENT: postgres
+            DATABASE_HOST: postgres
+            DATABASE_PORT: ${DB_PORT}
+            DATABASE_NAME: ${DB_NAME_CONTENT}
+            DATABASE_USERNAME: ${POSTGRES_USER}
+            DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+            ELASTIC_PORT: ${ELASTIC_PORT}
+        ports:
+            - '${STRAPI_PORT}:1337'
+        volumes:
+            - ./services/strapi/config:/opt/app/config
+            - ./services/strapi/src:/opt/app/src
+            - ./services/strapi/package.json:/opt/package.json
+            - ./services/strapi/package-lock.json:/opt/package-lock.json
+            - ./services/strapi/yarn.lock:/opt/yarn.lock
+            - ./.env:/opt/app/.env
+            - ./services/strapi/public/uploads:/opt/app/public/uploads
+            - ./services/strapi/favicon.ico:/opt/app/favicon.ico
+            - ./services/elastic/schema.json:/opt/app/src/elastic/schema.json
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.services.${APP_NAME}-strapi.loadbalancer.server.port=1337"
+            - "traefik.http.routers.${APP_NAME}-strapi.rule=Host(`${APP_NAME}-strapi`)"
+            - "traefik.http.routers.${APP_NAME}-strapi.service=${APP_NAME}-strapi"
+            - "traefik.http.routers.${APP_NAME}-strapi.entrypoints=http"
+            - "traefik.docker.network=gateway"
+        networks:
+            - gateway
+        restart: unless-stopped
